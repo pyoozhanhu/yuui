@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vivo 相册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 3px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .phone-screen {
+            background: #FFE6EF;
+            width: 100%;
+            height: 100%;
+            border-radius: 37px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            height: 44px;
+            background: #FFE6EF;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: #3D1828;
+            font-weight: 600;
+        }
+
+        .top-bar {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+        }
+
+        .top-bar h1 {
+            flex: 1;
+            font-size: 22px;
+            color: #3D1828;
+            font-weight: bold;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .icon-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #3D1828;
+        }
+
+        .btn-new-category {
+            margin: 8px 16px;
+            padding: 12px;
+            background: transparent;
+            border: 1.5px dashed #E85D7A;
+            border-radius: 24px;
+            color: #E85D7A;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-new-category:hover {
+            background: rgba(232, 93, 122, 0.1);
+        }
+
+        .categories-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 16px;
+        }
+
+        .category-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 0.5px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .category-header:hover {
+            background: rgba(0,0,0,0.03);
+        }
+
+        .category-cover {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #D0D5DC 0%, #E8EDF2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .category-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .category-cover.placeholder {
+            background: linear-gradient(135deg, #D0D5DC 0%, #E8EDF2 100%);
+        }
+
+        .category-cover.placeholder svg {
+            width: 24px;
+            height: 24px;
+            fill: #A88898;
+        }
+
+        .category-info {
+            flex: 1;
+        }
+
+        .category-name {
+            font-size: 16px;
+            color: #3D1828;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .category-count {
+            font-size: 12px;
+            color: #A88898;
+        }
+
+        .expand-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s;
+            fill: #A88898;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .thumbnails-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-top: 12px;
+            padding: 0 8px;
+        }
+
+        .thumbnails-horizontal {
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            margin-top: 12px;
+            padding: 0 8px;
+            overflow-x: auto;
+        }
+
+        .thumbnails-horizontal::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .thumbnails-horizontal::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .thumbnails-horizontal::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
+
+        .thumbnail-item {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            background: #F0D0DB;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .thumbnail-item:hover {
+            transform: scale(1.05);
+        }
+
+        .thumbnail-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #E8D5DC 0%, #F0D5E0 100%);
+        }
+
+        .thumbnail-placeholder svg {
+            width: 20px;
+            height: 20px;
+            fill: #A88898;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Dialog */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .dialog {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            width: 320px;
+            max-width: 90%;
+        }
+
+        .dialog-title {
+            font-size: 18px;
+            color: #3D1828;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .dialog-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #E0D5DC;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .dialog-input:focus {
+            border-color: #E85D7A;
+        }
+
+        .dialog-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .dialog-btn {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dialog-btn.cancel {
+            background: #F5F5F5;
+            color: #666;
+            border: none;
+        }
+
+        .dialog-btn.cancel:hover {
+            background: #E5E5E5;
+        }
+
+        .dialog-btn.confirm {
+            background: linear-gradient(135deg, #E85D7A 0%, #D44D6F 100%);
+            color: white;
+            border: none;
+        }
+
+        .dialog-btn.confirm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(232, 93, 122, 0.4);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            transition: transform 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Scrollbar */
+        .categories-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .categories-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .categories-list::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+
+        /* Fullscreen Viewer */
+        .fullscreen-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            z-index: 3000;
+            display: none;
+        }
+
+        .fullscreen-viewer.active {
+            display: block;
+        }
+
+        .viewer-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            z-index: 3001;
+            transition: opacity 0.3s;
+        }
+
+        .viewer-top-bar.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .viewer-back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .viewer-back-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .viewer-back-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #fff;
+        }
+
+        .viewer-page-indicator {
+            flex: 1;
+            text-align: center;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .viewer-placeholder {
+            width: 40px;
+            height: 40px;
+        }
+
+        .viewer-image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .viewer-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            cursor: grab;
+        }
+
+        .viewer-image-container img:active {
+            cursor: grabbing;
+        }
+
+        .viewer-bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            z-index: 3001;
+            transition: opacity 0.3s;
+        }
+
+        .viewer-bottom-bar.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .viewer-action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .viewer-action-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .viewer-action-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #fff;
+        }
+
+        .viewer-spacer {
+            flex: 1;
+        }
+
+        /* Select mode styles */
+        .category-checkbox {
+            display: none;
+            margin-right: 8px;
+        }
+
+        .select-mode .category-checkbox {
+            display: block;
+        }
+
+        .thumbnail-checkbox {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            display: none;
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #667eea;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .select-mode .thumbnail-checkbox {
+            display: flex;
+        }
+
+        .thumbnail-checkbox.checked {
+            background: #667eea;
+            color: white;
+        }
+
+        .batch-bar {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            display: none;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 100;
+        }
+
+        .select-mode .batch-bar {
+            display: flex;
+        }
+
+        .batch-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .batch-btn.delete {
+            background: #E85D7A;
+            color: white;
+        }
+
+        .batch-btn.delete:hover {
+            background: #D44D6F;
+        }
+
+        .batch-btn.move {
+            background: #667eea;
+            color: white;
+        }
+
+        .batch-btn.move:hover {
+            background: #5A6FD6;
+        }
+
+        .select-mode .phone-screen {
+            padding-bottom: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="phone-screen">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 🔋</span>
+            </div>
+
+            <div class="top-bar">
+                <h1 id="appTitle">相册</h1>
+                <span id="selectedCount" style="display: none; color: #3D1828; font-size: 16px;">已选择 0 项</span>
+                <div class="icon-btn" id="btnSelectMode" onclick="toggleSelectMode()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    </svg>
+                </div>
+                <div class="icon-btn" id="btnCancelSelect" style="display: none;" onclick="cancelSelectMode()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <button class="btn-new-category" onclick="showNewCategoryDialog()">+ 新建分类</button>
+
+            <div class="categories-list" id="categoriesList">
+            </div>
+
+            <div class="batch-bar" id="batchBar">
+                <button class="batch-btn delete" onclick="batchDelete()">删除</button>
+                <button class="batch-btn move" onclick="showToast('移动功能开发中')">移动到</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dialog -->
+    <div id="dialogOverlay" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-title">新建分类</div>
+            <input type="text" id="categoryInput" class="dialog-input" placeholder="请输入分类名称" maxlength="20">
+            <div class="dialog-buttons">
+                <button class="dialog-btn cancel" onclick="hideDialog()">取消</button>
+                <button class="dialog-btn confirm" onclick="createCategory()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Fullscreen Viewer -->
+    <div id="fullscreenViewer" class="fullscreen-viewer">
+        <div class="viewer-top-bar" id="viewerTopBar">
+            <div class="viewer-back-btn" onclick="closeViewer()">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </div>
+            <div class="viewer-page-indicator" id="viewerPageIndicator">1/10</div>
+            <div class="viewer-placeholder"></div>
+        </div>
+
+        <div class="viewer-image-container" id="viewerImageContainer">
+            <img id="viewerImage" src="" alt="Fullsize image">
+        </div>
+
+        <div class="viewer-bottom-bar" id="viewerBottomBar">
+            <div class="viewer-action-btn" onclick="showToast('收藏功能开发中')">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+            <div class="viewer-spacer"></div>
+            <div class="viewer-action-btn" onclick="showToast('分享功能开发中')">
+                <svg viewBox="0 0 24 24"><path d="M18 16.08c-0.76 0-1.44 0.3-1.96 0.77L8.91 12.7c0.05-0.23 0.09-0.46 0.09-0.7s-0.04-0.47-0.09-0.7l7.05-4.11c0.54 0.5 1.25 0.81 2.04 0.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 0.24 0.04 0.47 0.09 0.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c0.79 0 1.5-0.31 2.04-0.81l7.12 4.16c-0.05 0.21-0.08 0.43-0.08 0.66 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+            </div>
+            <div class="viewer-spacer"></div>
+            <div class="viewer-action-btn" onclick="showToast('删除功能开发中')">
+                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-0.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数据
+        let categories = [
+            { id: 1, name: '所有照片', coverPath: '', categoryType: 'album', isExpanded: false, itemCount: 0 },
+            { id: 2, name: '最近删除', coverPath: '', categoryType: 'album', isExpanded: false, itemCount: 0 },
+            { id: 3, name: '我的漫画', coverPath: '', categoryType: 'comic', isExpanded: false, itemCount: 0 },
+            { id: 4, name: '我的视频', coverPath: '', categoryType: 'video', isExpanded: false, itemCount: 0 }
+        ];
+
+        let nextId = 5;
+
+        // Select mode state
+        let selectMode = false;
+        let selectedSet = new Set();
+
+        // Fullscreen viewer state
+        let currentImages = [];
+        let currentPosition = 0;
+        let viewerVisible = false;
+
+        // 渲染分类列表
+        function renderCategories() {
+            const container = document.getElementById('categoriesList');
+            const modeClass = selectMode ? 'select-mode' : '';
+            
+            container.innerHTML = categories.map(cat => {
+                const isExpanded = cat.isExpanded;
+                const thumbnails = isExpanded ? 
+                    `<div class="thumbnails-grid">${renderThumbnails(cat, 'grid')}</div>` :
+                    `<div class="thumbnails-horizontal">${renderThumbnails(cat, 'horizontal')}</div>`;
+
+                const catId = `category_${cat.id}`;
+                const isChecked = selectedSet.has(catId) ? 'checked' : '';
+
+                return `
+                    <div class="category-card ${modeClass}">
+                        <div class="category-header" onclick="${selectMode ? `toggleCategorySelect(${cat.id})` : `toggleCategory(${cat.id})`}">
+                            <label class="category-checkbox" onclick="event.stopPropagation()">
+                                <input type="checkbox" ${isChecked} onchange="toggleCategorySelect(${cat.id})">
+                            </label>
+                            <div class="category-cover ${cat.coverPath ? '' : 'placeholder'}">
+                                ${cat.coverPath 
+                                    ? `<img src="${cat.coverPath}" alt="${cat.name}">`
+                                    : `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`
+                                }
+                            </div>
+                            <div class="category-info">
+                                <div class="category-name">${cat.name}</div>
+                                <div class="category-count">${cat.itemCount} 张照片</div>
+                            </div>
+                            <svg class="expand-icon ${isExpanded ? 'expanded' : ''}" viewBox="0 0 24 24">
+                                <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+                            </svg>
+                        </div>
+                        ${thumbnails}
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('categoriesList').parentElement.classList.toggle('select-mode', selectMode);
+        }
+
+        // 渲染缩略图
+        function renderThumbnails(category, type = 'grid') {
+            const items = type === 'horizontal' 
+                ? (category.items || []).slice(0, 4) 
+                : (category.items || []);
+
+            if (items.length === 0) {
+                const count = type === 'horizontal' ? 4 : 3;
+                return Array(count).fill(0).map((_, i) => `
+                    <div class="thumbnail-item">
+                        <div class="thumbnail-placeholder">
+                            <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM12 7c2.76 0 5 2.24 5 5s-2.24 5-5 5-5-2.24-5-5 2.24-5 5-5zm0 8c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z"/></svg>
+                        </div>
+                        <div class="thumbnail-checkbox" onclick="event.stopPropagation(); toggleItemSelect('${category.id}', ${i}, this)"></div>
+                    </div>
+                `).join('');
+            }
+
+            return items.map((item, index) => {
+                const itemId = `image_${category.id}_${item.id || index}`;
+                const isChecked = selectedSet.has(itemId) ? 'checked' : '';
+                const checkedClass = selectedSet.has(itemId) ? 'checked' : '';
+                
+                return `
+                    <div class="thumbnail-item" onclick="${selectMode ? '' : `event.stopPropagation(); openViewer(${category.id}, ${index})`}">
+                        <img src="${item.localPath}" alt="${item.title}" onerror="this.parentElement.innerHTML='<div class=\\'thumbnail-placeholder\\'><svg viewBox=\\'0 0 24 24\\'><path d=\\'M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z\\'/></svg></div>'">
+                        <div class="thumbnail-checkbox ${checkedClass}" onclick="event.stopPropagation(); toggleItemSelect('${category.id}', ${index}, this)">${isChecked ? '✓' : ''}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+            return items.map((item, index) => `
+                <div class="thumbnail-item" onclick="event.stopPropagation(); openViewer(${cat.id}, ${index})">
+                    <img src="${item.localPath}" alt="${item.title}" onerror="this.parentElement.innerHTML='<div class=\\'thumbnail-placeholder\\'><svg viewBox=\\'0 0 24 24\\'><path d=\\'M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z\\'/></svg></div>'">
+                </div>
+            `).join('');
+        }
+
+        // 切换展开/折叠
+        function toggleCategory(id) {
+            const cat = categories.find(c => c.id === id);
+            if (cat) {
+                cat.isExpanded = !cat.isExpanded;
+                renderCategories();
+            }
+        }
+
+        // 显示新建分类对话框
+        function showNewCategoryDialog() {
+            document.getElementById('dialogOverlay').classList.remove('hidden');
+            document.getElementById('categoryInput').value = '';
+            document.getElementById('categoryInput').focus();
+        }
+
+        // 隐藏对话框
+        function hideDialog() {
+            document.getElementById('dialogOverlay').classList.add('hidden');
+        }
+
+        // 创建分类
+        function createCategory() {
+            const input = document.getElementById('categoryInput');
+            const name = input.value.trim();
+
+            if (!name) {
+                showToast('分类名称不能为空');
+                return;
+            }
+
+            categories.push({
+                id: nextId++,
+                name: name,
+                coverPath: '',
+                categoryType: 'album',
+                isExpanded: false,
+                itemCount: 0
+            });
+
+            hideDialog();
+            renderCategories();
+            showToast(`已创建分类 "${name}"`);
+        }
+
+        // 显示 Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Enter 键创建分类
+        document.getElementById('categoryInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                createCategory();
+            }
+        });
+
+        // 点击遮罩关闭对话框
+        document.getElementById('dialogOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideDialog();
+            }
+        });
+
+        // Open fullscreen viewer
+        function openViewer(categoryId, index) {
+            const category = categories.find(c => c.id === categoryId);
+            if (!category || !category.items || category.items.length === 0) {
+                showToast('该分类暂无图片');
+                return;
+            }
+
+            currentImages = category.items;
+            currentPosition = index;
+            viewerVisible = true;
+
+            document.getElementById('fullscreenViewer').classList.add('active');
+            updateViewerImage();
+        }
+
+        // Close fullscreen viewer
+        function closeViewer() {
+            viewerVisible = false;
+            document.getElementById('fullscreenViewer').classList.remove('active');
+        }
+
+        // Update viewer image
+        function updateViewerImage() {
+            if (currentImages.length === 0) return;
+
+            const img = document.getElementById('viewerImage');
+            const item = currentImages[currentPosition];
+            
+            img.src = item.localPath || '';
+            img.alt = item.title || 'Image';
+            
+            document.getElementById('viewerPageIndicator').textContent = 
+                `${currentPosition + 1}/${currentImages.length}`;
+        }
+
+        // Toggle viewer bars
+        function toggleViewerBars() {
+            if (!viewerVisible) return;
+
+            const topBar = document.getElementById('viewerTopBar');
+            const bottomBar = document.getElementById('viewerBottomBar');
+            const isHidden = topBar.classList.contains('hidden');
+
+            if (isHidden) {
+                topBar.classList.remove('hidden');
+                bottomBar.classList.remove('hidden');
+            } else {
+                topBar.classList.add('hidden');
+                bottomBar.classList.add('hidden');
+            }
+        }
+
+        // Viewer click handler
+        document.getElementById('fullscreenViewer').addEventListener('click', function(e) {
+            if (e.target === this || e.target.id === 'viewerImageContainer' || e.target.id === 'viewerImage') {
+                toggleViewerBars();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (!viewerVisible) return;
+
+            if (e.key === 'ArrowLeft') {
+                if (currentPosition > 0) {
+                    currentPosition--;
+                    updateViewerImage();
+                }
+            } else if (e.key === 'ArrowRight') {
+                if (currentPosition < currentImages.length - 1) {
+                    currentPosition++;
+                    updateViewerImage();
+                }
+            } else if (e.key === 'Escape') {
+                closeViewer();
+            } else if (e.key === ' ') {
+                toggleViewerBars();
+            }
+        });
+
+        // Toggle select mode
+        function toggleSelectMode() {
+            selectMode = !selectMode;
+            selectedSet.clear();
+            document.getElementById('appTitle').style.display = selectMode ? 'none' : 'block';
+            document.getElementById('selectedCount').style.display = selectMode ? 'block' : 'none';
+            document.getElementById('btnSelectMode').style.display = selectMode ? 'none' : 'flex';
+            document.getElementById('btnCancelSelect').style.display = selectMode ? 'flex' : 'none';
+            document.getElementById('batchBar').style.display = selectMode ? 'flex' : 'none';
+            updateSelectedCount();
+            renderCategories();
+        }
+
+        // Cancel select mode
+        function cancelSelectMode() {
+            selectMode = false;
+            selectedSet.clear();
+            document.getElementById('appTitle').style.display = 'block';
+            document.getElementById('selectedCount').style.display = 'none';
+            document.getElementById('btnSelectMode').style.display = 'flex';
+            document.getElementById('btnCancelSelect').style.display = 'none';
+            document.getElementById('batchBar').style.display = 'none';
+            updateSelectedCount();
+            renderCategories();
+        }
+
+        // Toggle category selection
+        function toggleCategorySelect(id) {
+            const catId = `category_${id}`;
+            if (selectedSet.has(catId)) {
+                selectedSet.delete(catId);
+            } else {
+                selectedSet.add(catId);
+            }
+            updateSelectedCount();
+            renderCategories();
+        }
+
+        // Toggle item selection
+        function toggleItemSelect(categoryId, index, checkboxEl) {
+            const cat = categories.find(c => c.id == categoryId);
+            if (!cat || !cat.items || index >= cat.items.length) return;
+
+            const item = cat.items[index];
+            const itemId = `image_${categoryId}_${item.id || index}`;
+
+            if (selectedSet.has(itemId)) {
+                selectedSet.delete(itemId);
+                checkboxEl.classList.remove('checked');
+                checkboxEl.textContent = '';
+            } else {
+                selectedSet.add(itemId);
+                checkboxEl.classList.add('checked');
+                checkboxEl.textContent = '✓';
+            }
+            updateSelectedCount();
+        }
+
+        // Update selected count display
+        function updateSelectedCount() {
+            document.getElementById('selectedCount').textContent = `已选择 ${selectedSet.size} 项`;
+        }
+
+        // Batch delete
+        function batchDelete() {
+            if (selectedSet.size === 0) {
+                showToast('请选择要删除的项目');
+                return;
+            }
+
+            if (confirm(`确定要删除选中的 ${selectedSet.size} 项吗？项目将被移动到"最近删除"分类。`)) {
+                selectedSet.forEach(id => {
+                    if (id.startsWith('category_')) {
+                        const catId = parseInt(id.replace('category_', ''));
+                        const catIndex = categories.findIndex(c => c.id === catId);
+                        if (catIndex !== -1) {
+                            categories.splice(catIndex, 1);
+                        }
+                    } else if (id.startsWith('image_')) {
+                        const parts = id.replace('image_', '').split('_');
+                        if (parts.length >= 2) {
+                            const catId = parseInt(parts[0]);
+                            const itemId = parts[1];
+                            const cat = categories.find(c => c.id === catId);
+                            if (cat && cat.items) {
+                                cat.items = cat.items.filter(i => (i.id || '') !== itemId);
+                                cat.itemCount = cat.items.length;
+                            }
+                        }
+                    }
+                });
+
+                selectedSet.clear();
+                cancelSelectMode();
+                renderCategories();
+                showToast('已删除');
+            }
+        }
+
+        // Initialize render
+        renderCategories();
+    </script>
+</body>
+</html>

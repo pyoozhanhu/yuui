@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFE6EF"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="设置"
+        android:textSize="24sp"
+        android:textColor="#3D1828"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
+
+    <LinearLayout
+        style="@style/SettingItem"
+        android:orientation="vertical">
+        <TextView
+            style="@style/SettingTitle"
+            android:text="存储位置" />
+        <TextView
+            android:id="@+id/tvStoragePath"
+            style="@style/SettingValue"
+            android:text="加载中..." />
+        <Button
+            android:id="@+id/btnChangeStorage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="更改存储位置"
+            android:backgroundTint="#E85D7A"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/SettingItem"
+        android:orientation="vertical">
+        <TextView
+            style="@style/SettingTitle"
+            android:text="日志" />
+        <TextView
+            android:id="@+id/tvLog"
+            style="@style/SettingValue"
+            android:text="暂无日志"
+            android:maxLines="5" />
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/SettingItem"
+        android:orientation="vertical">
+        <TextView
+            style="@style/SettingTitle"
+            android:text="版本号" />
+        <TextView
+            android:id="@+id/tvVersion"
+            style="@style/SettingValue"
+            android:text="1.0.0" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnClearCache"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="清空缓存"
+        android:backgroundTint="#E85D7A"
+        android:textColor="#FFFFFF" />
+
+</LinearLayout>

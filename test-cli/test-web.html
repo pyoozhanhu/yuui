@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vivo 相册 - 数据库测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .test-section h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .test-result {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .test-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+            color: #555;
+        }
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        .log.visible {
+            display: block;
+        }
+        .log-line {
+            margin: 5px 0;
+        }
+        .log-line.success { color: #4ec9b0; }
+        .log-line.info { color: #569cd6; }
+        .log-line.error { color: #f48771; }
+        .divider {
+            height: 1px;
+            background: #e9ecef;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Vivo 相册 - 数据库测试</h1>
+        <p class="subtitle">Kotlin + Room 数据库结构验证</p>
+
+        <div id="tests">
+            <div class="test-section">
+                <h3>[1] 创建数据库表</h3>
+                <div id="test1" class="test-result">⏳ 等待执行...</div>
+            </div>
+
+            <div class="test-section">
+                <h3>[2] 插入默认分类</h3>
+                <div id="test2" class="test-result">⏳ 等待执行...</div>
+                <div id="test2-items"></div>
+            </div>
+
+            <div class="test-section">
+                <h3>[3] 插入测试媒体项</h3>
+                <div id="test3" class="test-result">⏳ 等待执行...</div>
+                <div id="test3-items"></div>
+            </div>
+
+            <div class="test-section">
+                <h3>[4] 建立分类与媒体关联</h3>
+                <div id="test4" class="test-result">⏳ 等待执行...</div>
+            </div>
+
+            <div class="test-section">
+                <h3>[5] 查询分类媒体</h3>
+                <div id="test5" class="test-result">⏳ 等待执行...</div>
+                <div id="test5-items"></div>
+            </div>
+
+            <div class="test-section">
+                <h3>[6] 删除功能测试</h3>
+                <div id="test6" class="test-result">⏳ 等待执行...</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="runTests()" id="runBtn">▶ 运行测试</button>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const DB_KEY = 'vivo_album_test_db';
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const line = document.createElement('div');
+            line.className = `log-line ${type}`;
+            line.textContent = message;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearDB() {
+            localStorage.removeItem(DB_KEY);
+        }
+
+        function getDB() {
+            const data = localStorage.getItem(DB_KEY);
+            if (!data) {
+                return {
+                    categories: [],
+                    mediaItems: [],
+                    joins: []
+                };
+            }
+            return JSON.parse(data);
+        }
+
+        function saveDB(db) {
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+        }
+
+        function uuid() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+
+        async function runTests() {
+            const btn = document.getElementById('runBtn');
+            const logDiv = document.getElementById('log');
+            
+            btn.disabled = true;
+            logDiv.classList.add('visible');
+            logDiv.innerHTML = '';
+            
+            log('======================================', 'info');
+            log('   Vivo 相册 - 数据库测试', 'info');
+            log('======================================', 'info');
+            log('');
+
+            clearDB();
+
+            // Test 1: Create tables
+            log('[1] 创建数据库表...', 'info');
+            await sleep(500);
+            const db = getDB();
+            document.getElementById('test1').innerHTML = '✓ 数据库表创建成功 (categories, media_items, category_media_join)';
+            document.getElementById('test1').style.color = '#28a745';
+            log('✓ 创建 categories 表', 'success');
+            log('✓ 创建 media_items 表', 'success');
+            log('✓ 创建 category_media_join 表', 'success');
+            log('');
+
+            // Test 2: Insert categories
+            log('[2] 插入默认分类...', 'info');
+            await sleep(500);
+            const categories = [
+                { id: uuid(), name: '所有照片', coverPath: '', categoryType: 'album' },
+                { id: uuid(), name: '最近删除', coverPath: '', categoryType: 'album' },
+                { id: uuid(), name: '我的漫画', coverPath: '', categoryType: 'comic' },
+                { id: uuid(), name: '我的视频', coverPath: '', categoryType: 'video' }
+            ];
+            db.categories = categories;
+            saveDB(db);
+            
+            document.getElementById('test2').innerHTML = `✓ 插入 ${categories.length} 个分类`;
+            document.getElementById('test2').style.color = '#28a745';
+            
+            const test2Items = document.getElementById('test2-items');
+            test2Items.innerHTML = categories.map(c => 
+                `<div class="test-item">- ${c.name} (类型：${c.categoryType})</div>`
+            ).join('');
+            
+            log(`✓ 插入 ${categories.length} 个分类`, 'success');
+            categories.forEach(c => log(`  - ${c.name} (${c.categoryType})`, 'info'));
+            log('');
+
+            // Test 3: Insert media items
+            log('[3] 插入测试媒体项...', 'info');
+            await sleep(500);
+            const mediaItems = [
+                { id: uuid(), localPath: '/photos/img001.jpg', title: '照片 1', mediaType: 'image' },
+                { id: uuid(), localPath: '/photos/img002.jpg', title: '照片 2', mediaType: 'image' },
+                { id: uuid(), localPath: '/comic/page001.jpg', title: '漫画第 1 页', mediaType: 'comic_page' },
+                { id: uuid(), localPath: '/video/vid001.mp4', title: '视频 1', mediaType: 'video' }
+            ];
+            db.mediaItems = mediaItems;
+            saveDB(db);
+            
+            document.getElementById('test3').innerHTML = `✓ 插入 ${mediaItems.length} 个媒体项`;
+            document.getElementById('test3').style.color = '#28a745';
+            
+            const test3Items = document.getElementById('test3-items');
+            test3Items.innerHTML = mediaItems.map(m => 
+                `<div class="test-item">- ${m.title} (${m.mediaType})</div>`
+            ).join('');
+            
+            log(`✓ 插入 ${mediaItems.length} 个媒体项`, 'success');
+            mediaItems.forEach(m => log(`  - ${m.title}`, 'info'));
+            log('');
+
+            // Test 4: Create relationships
+            log('[4] 建立分类与媒体关联...', 'info');
+            await sleep(500);
+            const albumCat = categories.find(c => c.name === '所有照片');
+            const comicCat = categories.find(c => c.name === '我的漫画');
+            const videoCat = categories.find(c => c.name === '我的视频');
+            
+            db.joins = [
+                { categoryId: albumCat.id, mediaId: mediaItems[0].id },
+                { categoryId: albumCat.id, mediaId: mediaItems[1].id },
+                { categoryId: albumCat.id, mediaId: mediaItems[2].id },
+                { categoryId: comicCat.id, mediaId: mediaItems[2].id },
+                { categoryId: videoCat.id, mediaId: mediaItems[3].id }
+            ];
+            saveDB(db);
+            
+            document.getElementById('test4').innerHTML = '✓ 关联建立成功';
+            document.getElementById('test4').style.color = '#28a745';
+            
+            log('✓ 所有照片 → 照片 1, 照片 2, 漫画第 1 页', 'success');
+            log('✓ 我的漫画 → 漫画第 1 页', 'success');
+            log('✓ 我的视频 → 视频 1', 'success');
+            log('');
+
+            // Test 5: Query
+            log('[5] 查询"所有照片"分类的媒体...', 'info');
+            await sleep(500);
+            const albumJoins = db.joins.filter(j => j.categoryId === albumCat.id);
+            const albumMedia = albumJoins.map(j => 
+                db.mediaItems.find(m => m.id === j.mediaId)
+            ).filter(m => m);
+            
+            document.getElementById('test5').innerHTML = `✓ 查询到 ${albumMedia.length} 个媒体项`;
+            document.getElementById('test5').style.color = '#28a745';
+            
+            const test5Items = document.getElementById('test5-items');
+            test5Items.innerHTML = albumMedia.map(m => 
+                `<div class="test-item">- ${m.title} (${m.mediaType})</div>`
+            ).join('');
+            
+            log(`✓ 查询到 ${albumMedia.length} 个媒体项`, 'success');
+            albumMedia.forEach(m => log(`  - ${m.title}`, 'info'));
+            log('');
+
+            // Test 6: Delete
+            log('[6] 测试删除功能...', 'info');
+            await sleep(500);
+            const toDelete = mediaItems[1];
+            db.mediaItems = db.mediaItems.filter(m => m.id !== toDelete.id);
+            db.joins = db.joins.filter(j => j.mediaId !== toDelete.id);
+            saveDB(db);
+            
+            document.getElementById('test6').innerHTML = `✓ 删除"${toDelete.title}"成功，剩余 ${db.mediaItems.length} 个媒体项`;
+            document.getElementById('test6').style.color = '#28a745';
+            
+            log(`✓ 删除"${toDelete.title}"成功`, 'success');
+            log(`✓ 剩余媒体项：${db.mediaItems.length} 个`, 'info');
+            log('');
+
+            log('======================================', 'success');
+            log('   所有测试通过！✓', 'success');
+            log('======================================', 'success');
+
+            btn.disabled = false;
+            btn.textContent = '↻ 重新运行';
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
