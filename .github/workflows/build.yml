@@ -1,4 +1,4 @@
-name: 安卓项目自动编译APK
+name: 修复版自动编译APK
 on: push
 jobs:
   build:
@@ -6,20 +6,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 配置JDK17编译环境
+      - name: 安装JDK17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 赋予gradlew执行权限
-        run: chmod +x gradlew
+      # 自动扫描、精准定位真正的源码目录
+      - name: 查找工程目录
+        run: |
+          GRADLEW_PATH=$(find . -name "gradlew" | head -1)
+          PROJECT_ROOT=$(dirname "$GRADLEW_PATH")
+          echo "PROJECT_DIR=$PROJECT_ROOT" >> $GITHUB_ENV
 
-      - name: 编译正式版APK
+      - name: 赋予脚本权限
+        run: chmod +x ./gradlew
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: 正式编译APK
         run: ./gradlew clean assembleRelease
+        working-directory: ${{ env.PROJECT_DIR }}
 
-      - name: 上传编译产物
+      - name: 导出成品安装包
         uses: actions/upload-artifact@v4
         with:
-          name: 成品APK
-          path: app/build/outputs/apk/release/
+          name: 编译好的APK
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/
