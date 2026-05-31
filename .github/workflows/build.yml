@@ -1,4 +1,4 @@
-name: Build APK
+name: 老旧源码兼容打包
 on: push
 jobs:
   build:
@@ -6,26 +6,26 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: 配置JDK
+    - name: 配置JDK17
       uses: actions/setup-java@v4
       with:
         java-version: 17
         distribution: temurin
 
-    - name: 云端自动补齐缺失文件
-      run: gradle wrapper
+    - name: 降级适配版Gradle
+      run: gradle wrapper --gradle-version 8.5
 
-    - name: 全局修复权限
+    - name: 全局修复执行权限
       run: find . -name gradlew -exec chmod +x {} \;
 
-    - name: 自动找源码+编译
+    - name: 忽略警告 强制编译APK
       run: |
         PROJ_ROOT=$(dirname $(find . -name settings.gradle | head -1))
         cd $PROJ_ROOT
-        ./gradlew clean assembleRelease
+        ./gradlew clean assembleRelease --warning-mode none --continue
 
-    - name: 打包导出APK
+    - name: 导出可安装成品
       uses: actions/upload-artifact@v4
       with:
-        name: 成品可安装APK
+        name: 最终可用APK
         path: "**/release/*.apk"
